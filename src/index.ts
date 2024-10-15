@@ -1,11 +1,11 @@
 import * as dotenv from "dotenv";
-import express from "express";
-import cors from "cors";
 import path from "path";
 import bodyParser from "body-parser";
-const fs = require("fs");
-dotenv.config();
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
 
+const fs = require("fs");
 const allowedOrigins = [
   "http://app.luxas.com.vn",
   "http://125.212.231.227:80",
@@ -35,13 +35,13 @@ app.post("/upload/image", (req, res) => {
     const { imageBase64, fileName } = req.body;
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const fileExtension = imageBase64.match(/^data:image\/(\w+);base64,/)[1]; // Lấy phần mở rộng file
-    console.log(base64Data);
+
     const uniqueFileName = `${fileName || Date.now()}-${Math.round(
       Math.random() * 1e9
     )}.${fileExtension}`;
     const filePath = path.join(uploadDir, uniqueFileName);
 
-    fs.writeFile(filePath, base64Data, "base64", (err) => {
+    fs.writeFile(filePath, base64Data, "base64", (err: any) => {
       if (err) {
         return res.status(500).json({ error: "Lỗi khi lưu hình ảnh" });
       }
@@ -59,7 +59,16 @@ app.post("/upload/image", (req, res) => {
       .json({ error: "Định dạng Base64 không hợp lệ hoặc có lỗi xảy ra" });
   }
 });
+app.get("/test/server", (req, res) => {
+  try {
+    res.status(200).json({
+      message: "Đường dẫn đến server match!",
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi rồi" });
+  }
+});
 
-app.listen(8083, "0.0.0.0", () => {
-  console.log(`Listening on port ${8083}`);
+app.listen(8080, "0.0.0.0", () => {
+  console.log(`Listening on port ${8080}`);
 });
