@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  
+  backend:
+    build:
+      context: .         # Đây là thư mục gốc của dự án, nơi chứa Dockerfile
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./dist:/app/dist   # Mount thư mục dist từ host vào container
