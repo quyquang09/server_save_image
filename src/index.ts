@@ -1,23 +1,23 @@
-import * as dotenv from "dotenv";
-import path from "path";
 import bodyParser from "body-parser";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import router from "./router";
 
-const fs = require("fs");
 const allowedOrigins = [
   "http://app.luxas.com.vn",
-  "http://125.212.231.227:80",
+  "http://app.luxas.com.vn:82",
   "http://125.212.231.227",
+  "http://125.212.231.227:82",
   "http://localhost:3000",
   "http://localhost:8080",
+  "http://192.168.1.219:3000",
 ];
 
 const app = express();
-const uploadDir = "./image";
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+
 app.use(express.json());
 app.use(
   cors({
@@ -25,50 +25,10 @@ app.use(
     optionsSuccessStatus: 200,
   })
 );
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
-app.post("/upload/image", (req, res) => {
-  try {
-    const { imageBase64, fileName } = req.body;
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const fileExtension = imageBase64.match(/^data:image\/(\w+);base64,/)[1]; // Lấy phần mở rộng file
-
-    const uniqueFileName = `${fileName || Date.now()}-${Math.round(
-      Math.random() * 1e9
-    )}.${fileExtension}`;
-    const filePath = path.join(uploadDir, uniqueFileName);
-
-    fs.writeFile(filePath, base64Data, "base64", (err: any) => {
-      if (err) {
-        return res.status(500).json({ error: "Lỗi khi lưu hình ảnh" });
-      }
-      const imageUrl = `${req.protocol}://${req.get(
-        "host"
-      )}/images/${uniqueFileName}`;
-      res.status(200).json({
-        message: "Hình ảnh đã được tải lên thành công!",
-        imageUrl: imageUrl,
-      });
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Định dạng Base64 không hợp lệ hoặc có lỗi xảy ra" });
-  }
-});
-app.get("/test/server", (req, res) => {
-  try {
-    res.status(200).json({
-      message: "Đường dẫn đến server match!",
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Lỗi rồi" });
-  }
-});
+app.use(helmet());
+app.use(router);
 
 app.listen(8080, "0.0.0.0", () => {
   console.log(`Listening on port ${8080}`);
 });
+//>ssh -f -N -R 9090:192.168.1.189:8080 root@125.212.231.227
